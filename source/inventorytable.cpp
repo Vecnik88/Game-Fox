@@ -9,22 +9,20 @@ InventoryTable::InventoryTable(const size_t &rowsSrc,
     cells.resize(rows * cols);
 
     // формируем таблицу
-    setMaximumSize(300, 300);
-    setMinimumWidth(300);
-    setMinimumHeight(300);
+    setFixedSize(300, 300);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setDragDropMode(QAbstractItemView::DragDrop);
-    setColumnWidth(0, 100);
-    setColumnWidth(1, 100);
-    setColumnWidth(2, 100);
-    setRowHeight(0, 100);
-    setRowHeight(1, 100);
-    setRowHeight(2, 100);
+
+    for (size_t i = 0; i < cols; ++i) {
+        setColumnWidth(i, 100);
+        setRowHeight(i, 100);
+    }
     setIconSize(QSize(92, 92));
     setDragDropOverwriteMode(true);
     setDropIndicatorShown(true);
-
+    Delegate *delegate = new Delegate();
+    setItemDelegate(delegate);
     connect(this, &InventoryTable::itemClicked, this, &InventoryTable::removeInventory);
 }
 // добавляет предмет в таблицу
@@ -33,7 +31,7 @@ void InventoryTable::appendSubject(const size_t row, const size_t col)
     size_t cell = row * cols + col;
     cells[cell].appendAmount();
 
-    for (int i = 0; i < rows*cols; ++i) {
+    for (size_t i = 0; i < rows*cols; ++i) {
         qDebug() << i << " " << cells[i].getAmount() << " " << cells[i].getType() << endl;
     }
 }
@@ -63,7 +61,7 @@ void InventoryTable::dragEnterEvent(QDragEnterEvent *event)
 
 void InventoryTable::mouseReleaseEvent(QMouseEvent *event)
 {
-    event->
+
 }
 
 void InventoryTable::dragMoveEvent(QDragMoveEvent *event)

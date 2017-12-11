@@ -17,7 +17,7 @@ class MainWindow : public QWidget
 public:
     explicit MainWindow(const QString &type,
                         const QString &path,
-                              QWidget *parent = 0);
+                              QWidget *parent = Q_NULLPTR);
     ~MainWindow();
 
 public slots:

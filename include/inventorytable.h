@@ -8,6 +8,7 @@
 #include <QtMultimedia/QSound>
 
 #include "include/infocell.h"
+#include "include/delegate.h"
 
 #define SOUND_FOX "/home/anton/qt_project/red/sound/fox.wav"
 

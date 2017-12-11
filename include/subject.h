@@ -5,6 +5,7 @@
 #include <QString>
 #include <QTableWidget>
 
+#include "include/delegate.h"
 /*
  * Класс "Предмет", описывает тип предмета и исходник изображения
 */

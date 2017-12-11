@@ -20,7 +20,8 @@ SOURCES += source/main.cpp \
     source/infocell.cpp \
     source/database.cpp \
     source/thread.cpp \
-    source/inventorytable.cpp
+    source/inventorytable.cpp \
+    source/delegate.cpp
 
 HEADERS += \
     include/mainwindow.h \
@@ -28,4 +29,5 @@ HEADERS += \
     include/infocell.h \
     include/database.h \
     include/thread.h \
-    include/inventorytable.h
+    include/inventorytable.h \
+    include/delegate.h

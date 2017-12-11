@@ -9,8 +9,7 @@ Subject::Subject(const QString &typeSrc,
     item = new QTableWidgetItem();
 
     // формируем внешний вид виджета
-    setMaximumWidth(100);
-    setMaximumHeight(100);
+    setFixedSize(100, 100);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setDragEnabled(true);
@@ -19,6 +18,8 @@ Subject::Subject(const QString &typeSrc,
     setIconSize(QSize(92, 92));
     setDragDropOverwriteMode(true);
     setDropIndicatorShown(true);
+    Delegate *delegate = new Delegate();
+    setItemDelegate(delegate);
 }
 
 Subject::~Subject()
