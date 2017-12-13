@@ -31,9 +31,6 @@ void Delegate::paint(      QPainter             *painter,
     else
         painter->setPen(opt.palette.color(cg, QPalette::Text));
 
-    // draw 2 lines of text
-    painter->drawText(QRect(rect.left(), rect.top(), rect.width(), rect.height()/2),
-                      opt.displayAlignment, line0);
     painter->drawText(QRect(rect.left(), rect.top()+rect.height()/2, rect.width(), rect.height()/2),
                       opt.displayAlignment, line1);
 

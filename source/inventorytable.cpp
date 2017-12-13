@@ -76,11 +76,14 @@ void InventoryTable::dragLeaveEvent(QDragLeaveEvent *event)
 
 void InventoryTable::dropEvent(QDropEvent *event)
 {
+    QTableWidget::dropEvent(event);
     QPoint position = event->pos();
+    QString str = this->indexAt(position).data().toString();
+    qDebug() << "str = " << str << endl;
     size_t row = this->rowAt(position.y());
     size_t col = this->columnAt(position.x());
     this->appendSubject(row, col);
     //qDebug() << (row * cols + col) << endl;
 
-    QTableWidget::dropEvent(event);
+
 }

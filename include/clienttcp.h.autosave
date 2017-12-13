@@ -1,0 +1,29 @@
+#ifndef CLIENTTCP_H
+#define CLIENTTCP_H
+
+#include <QObject>
+#include <QtNetwork>
+
+class ClientTCP : public QObject
+{
+    explicit ClientTCP();
+    ~ClientTCP();
+    QString getData();
+public slots:
+    void sendToServer(QString msg);
+
+private slots:
+    void readyRead();
+    void connected();
+    void error(QAbstractSocket::SocketError);
+
+signals:
+    void recvData();
+
+private:
+    QTcpSocket *tcpSocket;
+    quint16     block;
+    QString     msg;
+}
+
+#endif // CLIENTTCP_H
