@@ -22,6 +22,8 @@ SOURCES += source/main.cpp \
     source/thread.cpp \
     source/inventorytable.cpp \
     source/delegate.cpp \
+    source/clienttcp.cpp \
+    source/servertcp.cpp \
     source/clienttcp.cpp
 
 HEADERS += \
@@ -32,4 +34,5 @@ HEADERS += \
     include/thread.h \
     include/inventorytable.h \
     include/delegate.h \
-    include/clienttcp.h
+    include/clienttcp.h \
+    include/servertcp.h
