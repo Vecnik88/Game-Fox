@@ -8,8 +8,8 @@ Subject::Subject(const QString &typeSrc,
     type = typeSrc;
     path = pathSrc;
 
-    setMinimumSize(100, 150);
-    setMaximumSize(100, 150);
+    setMinimumSize(120, 120);
+    setMaximumSize(120, 120);
     setFrameStyle(QFrame::Sunken | QFrame::StyledPanel);
     setAcceptDrops(true);
 

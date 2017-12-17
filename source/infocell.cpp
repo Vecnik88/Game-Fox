@@ -1,8 +1,9 @@
 #include "include/infocell.h"
 
-InfoCell::InfoCell(): type(""), amount(0)
+InfoCell::InfoCell()
 {
-
+    type = "";
+    amount = 0;
 }
 
 InfoCell::~InfoCell()

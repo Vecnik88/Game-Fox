@@ -18,8 +18,8 @@ public:
     InventoryTable(const size_t &rowsSrc,
                    const size_t &colsSrc);
 
+    void initTable();
     QVector<InfoCell> cells;
-
 private:
     size_t cols;
     size_t rows;
@@ -27,7 +27,7 @@ private:
 
     QPoint dragStartPosition;
     QRect  highlightedRect;
-    void initTable();
+    void createTable();
 
 private slots:
     void dropEvent(QDropEvent *event);

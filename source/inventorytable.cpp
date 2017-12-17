@@ -8,10 +8,27 @@ InventoryTable::InventoryTable(const size_t &rowsSrc,
     cols = colsSrc;
     sizeTable = rows * cols;
     cells.resize(sizeTable);
-    initTable();
+    createTable();
 }
 
 void InventoryTable::initTable()
+{
+    for (size_t col = 0; col < cols; ++col) {
+        for (size_t row = 0; row < rows; ++row) {
+            QTableWidgetItem *item = new QTableWidgetItem(QString(""));
+            size_t cell = col * rows + row;
+            if (cells[cell].getAmount()) {
+                item->setIcon(QIcon(QPixmap(PATH_IMAGE)));
+                item->setText(QString::number(cells[cell].getAmount()));
+            }
+
+            item->setTextAlignment(Qt::AlignBottom | Qt::AlignRight);
+            this->setItem(col, row, item);
+        }
+    }
+}
+
+void InventoryTable::createTable()
 {
     // формируем таблицу
     setFixedSize(300, 300);
@@ -33,14 +50,9 @@ void InventoryTable::initTable()
     setDragDropOverwriteMode(true);
     setIconSize(QSize(70, 70));
 
-    for (size_t col = 0; col < cols; ++col) {
-        for (size_t row = 0; row < rows; ++row) {
-            QTableWidgetItem *item = new QTableWidgetItem(QString(""));
-            item->setTextAlignment(Qt::AlignBottom | Qt::AlignRight);
-            this->setItem(col, row, item);
-        }
-        setColumnWidth(col, 100);
-        setRowHeight(col, 100);
+    for (size_t i = 0; i < sizeTable; ++i) {
+        setColumnWidth(i, 100);
+        setRowHeight(i, 100);
     }
 }
 
@@ -156,8 +168,8 @@ void InventoryTable::dragMoveEvent(QDragMoveEvent *event)
 
 void InventoryTable::paintEvent(QPaintEvent *event)
 {
-    QTableWidget::paintEvent(event);        // перерисовка QTableWidget
-    QPainter painter(this->viewport());     // перерисовка на viewport();
+    QTableWidget::paintEvent(event);
+    QPainter painter(this->viewport());
     painter.setRenderHint(QPainter::Antialiasing);
     painter.setPen(Qt::blue);
     painter.drawRect(highlightedRect);

@@ -11,28 +11,52 @@
 #include "include/database.h"
 #include "include/inventorytable.h"
 
-class MainWindow : public QWidget
+enum statusGame {
+    CLIENT = 0,
+    SERVER,
+    SIMPLE_GAME
+};
+
+/****************/
+/* Игровое окно */
+/* **************/
+class GameWindow : public QWidget
 {
     Q_OBJECT
 public:
-    explicit MainWindow(const QString &type,
-                        const QString &path,
-                              QWidget *parent = Q_NULLPTR);
-    ~MainWindow();
+    explicit GameWindow(QWidget *parent = Q_NULLPTR);
+    ~GameWindow();
 
 public slots:
+    // запускает игру
     void runGame();
-    void runGameClient();
-    void runGameServer();
+    // останавливает игру(сохраняя)
     void stopGame();
+    // запускает игру как клиент
+    void runGameClient();
+    // запускает игру как сервер
+    void runGameServer();
 
 private:
+    DataBase            *db;
+    InventoryTable      *table;
+    Subject             *subject;
     QWidget             *mainMenu;
     QWidget             *gameField;
-    Subject             *subject;
-    InventoryTable      *table;
-    DataBase            *db;
+    int                  gameStatus;
+
+    QPushButton         *run;
+    QPushButton         *exit;
     QPushButton         *menuGame;
+    QPushButton         *runClient;
+    QPushButton         *runServer;
+
+    // инициализирует/создают игровое поле
+    void gameInit();
+    void createMainMenu();
+    void createGameMenu();
+    void createGameField();
+    void createGameWindow();
 };
 
 #endif // MAINWINDOW_H

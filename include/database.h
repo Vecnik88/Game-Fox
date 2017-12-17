@@ -13,27 +13,15 @@
 
 #include "include/subject.h"
 #include "include/infocell.h"
-
-// имена таблиц в базе данных
-#define NAME_TABLE_SUBJECT      "Subject"
-#define NAME_TABLE_INVENTORY    "Inventory"
-
-// имена полей в таблицах базы данных
-#define TABLE_TYPE              "Type"
-#define TABLE_PATH              "Path"
-#define TABLE_AMOUNT            "Amount"
+#include "include/sourcedata.h"
 
 // представляет базу данных SQLite
 class DataBase : public QObject
 {
     Q_OBJECT
 public:
-    explicit DataBase(const QString &nameDB,
-                      const QString &srcHostName,
-                      const size_t  &amountCells,
-                      const QString &typeSrc,
-                      const QString &pathSrc,
-                            QObject *parent = 0);
+    explicit DataBase(const size_t  &amountCells = 0,
+                            QObject *parent      = Q_NULLPTR);
     ~DataBase();
 
     bool connectToDataBase();
@@ -44,9 +32,9 @@ public:
 private:
     QSqlDatabase    db;
     QString         name;
-    QString         hostName;
     QString         type;
     QString         path;
+    QString         hostName;
     size_t          amountKey;
 
     // методы для настройки базы данных

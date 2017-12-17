@@ -1,18 +1,14 @@
 #include "include/database.h"
 
-DataBase::DataBase(const QString &nameDB,
-                   const QString &srcHostName,
-                   const size_t  &amountCells,
-                   const QString &typeSrc,
-                   const QString &pathSrc,
-                         QObject *parent) :
+DataBase::DataBase(const size_t  &amountCells,
+                         QObject *parent):
                          QObject (parent)
 {
-    name = nameDB;
-    hostName = srcHostName;
+    name = DATABASE_NAME;
+    hostName = HOST_NAME;
     amountKey = amountCells;
-    type = typeSrc;
-    path = pathSrc;
+    type = TYPE_SUBJECT;
+    path = PATH_IMAGE;
 }
 
 DataBase::~DataBase()
@@ -30,7 +26,7 @@ bool DataBase::connectToDataBase()
         if (this->openDataBase())
             return true;
     }
-    qDebug() << "<connectToDataBase> problem with connect to database" << endl;
+    qDebug() << "<DataBase::connectToDataBase> problem with connect to database" << endl;
     return false;
 }
 
@@ -39,13 +35,13 @@ bool DataBase::restoreDataBase()
 {
     if (this->openDataBase()) {
         if (!this->createTable()) {
-            qDebug() << "<restoreDataBase> problem with create table" << endl;
+            qDebug() << "<DataBase::restoreDataBase> problem with create table" << endl;
             return false;
         } else {
             return true;
         }
     } else {
-        qDebug() << "<restoreDataBase> problem with restore database" << endl;
+        qDebug() << "<DataBase::restoreDataBase> problem with restore database" << endl;
         return false;
     }
     return false;
@@ -69,6 +65,7 @@ void DataBase::closeDataBase()
     db.close();
 }
 
+// создает таблицы
 bool DataBase::createTable()
 {
     const QString createTableSubject = "CREATE TABLE " NAME_TABLE_SUBJECT
@@ -82,7 +79,7 @@ bool DataBase::createTable()
                                          TABLE_AMOUNT   " INTEGER)";
     QSqlQuery query;
     if (!query.exec(createTableSubject) || !query.exec(createTableInventory)) {
-            qDebug() << "< createTable > error of create database" << endl;
+            qDebug() << "<DataBase::createTable> error of create database" << endl;
             qDebug() << query.lastError().text();
             return false;
     }
@@ -90,7 +87,7 @@ bool DataBase::createTable()
                    "VALUES (%1, '%2', '%3');";
     QString str = strF.arg("1").arg(type).arg(path);
     if (!query.exec(str)) {
-        qDebug() << "< createTable > error init database " NAME_TABLE_SUBJECT << endl;
+        qDebug() << "<DataBase::createTable> error init database " NAME_TABLE_SUBJECT << endl;
         qDebug() << query.lastError().text();
         return false;
     }
@@ -100,7 +97,7 @@ bool DataBase::createTable()
         str = strF.arg(QString::number(i)).arg(type).arg(QString::number(0));
         if (!query.exec(str)) {
             qDebug() << str << endl;
-            qDebug() << "< createTable > error init database " << i << NAME_TABLE_INVENTORY << endl;
+            qDebug() << "<DataBase::createTable> error init database " << i << NAME_TABLE_INVENTORY << endl;
             qDebug() << query.lastError().text();
             return false;
         }
@@ -141,7 +138,7 @@ bool DataBase::getIntoTable(Subject *subject, QVector<InfoCell> &cells)
 {
     QSqlQuery query;
     if (!query.exec("SELECT * FROM " NAME_TABLE_SUBJECT ";")) {
-        qDebug() << "< getIntoTable > error get into " << NAME_TABLE_SUBJECT;
+        qDebug() << "<DataBase::getIntoTable> error get into " << NAME_TABLE_SUBJECT;
         qDebug() << query.lastError().text() << endl;
         return false;
     }
@@ -154,7 +151,7 @@ bool DataBase::getIntoTable(Subject *subject, QVector<InfoCell> &cells)
     query.clear();
     rec.clear();
     if (!query.exec("SELECT * FROM " NAME_TABLE_INVENTORY ";")) {
-        qDebug() << "< getIntoTable > error get into " << NAME_TABLE_INVENTORY;
+        qDebug() << "<DataBase::getIntoTable> error get into " << NAME_TABLE_INVENTORY;
         qDebug() << query.lastError().text() << endl;
         return false;
     }
