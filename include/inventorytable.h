@@ -6,35 +6,35 @@
 #include <QTableWidget>
 #include <QDragEnterEvent>
 #include <QtMultimedia/QSound>
+#include <QtWidgets>
 
 #include "include/infocell.h"
-#include "include/delegate.h"
-
-#define SOUND_FOX "/home/anton/qt_project/red/sound/fox.wav"
+#include "include/sourcedata.h"
 
 class InventoryTable : public QTableWidget
 {
+    Q_OBJECT
 public:
     InventoryTable(const size_t &rowsSrc,
                    const size_t &colsSrc);
-
-    void appendSubject(const size_t row,
-                       const size_t col);
-    void removeSubject(QTableWidgetItem *item);
 
     QVector<InfoCell> cells;
 
 private:
     size_t cols;
     size_t rows;
+    size_t sizeTable;
+
+    QPoint dragStartPosition;
+    QRect  highlightedRect;
+    void initTable();
 
 private slots:
-    void removeInventory(QTableWidgetItem *item);
     void dropEvent(QDropEvent *event);
     void dragMoveEvent(QDragMoveEvent *event);
-    void dragLeaveEvent(QDragLeaveEvent *event);
     void dragEnterEvent(QDragEnterEvent *event);
-    void mouseReleaseEvent(QMouseEvent* event);
+    void mousePressEvent(QMouseEvent *event);
+    void paintEvent(QPaintEvent *event);
 };
 
 #endif // INVENTORYTABLE_H

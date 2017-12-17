@@ -11,6 +11,7 @@ public:
 
     size_t getAmount();
     QString getType();
+    void clear();
     void appendAmount(size_t val = 1);
     void removeAmount(size_t val = 1);
     void setParametrs(const QString &srcType,

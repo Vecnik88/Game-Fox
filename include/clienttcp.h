@@ -8,13 +8,14 @@ class Client : public QObject
 {
     Q_OBJECT
 public:
-    explicit Client::Client(const QString &ipDestination,
-                            const size_t  &portDestination);
-    ~ClientTCP();
+    explicit Client(const QString &ipDestination,
+                            const size_t  &portDestination,
+                                  QObject *parent = Q_NULLPTR);
+    ~Client();
     QString getData();
 
 public slots:
-    void sendToServer(QString);
+    void sendToServer(const QString &msg);
 
 private slots:
     void recvReady();

@@ -1,7 +1,8 @@
 #include "include/clienttcp.h"
 
 Client::Client(const QString &ipDestination,
-                     const size_t  &portDestination) : QObject()
+               const size_t  &portDestination,
+                     QObject *parent):QObject(parent)
 {
     tcpSocket = new QTcpSocket;
     tcpSocket->connectToHost(ipDestination, portDestination);
@@ -65,5 +66,5 @@ void Client::sendToServer(const QString &msg)
 
 QString Client::getData()
 {
-    return data;
+    return msg;
 }

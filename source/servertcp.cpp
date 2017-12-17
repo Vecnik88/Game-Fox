@@ -1,75 +1,121 @@
 #include "include/servertcp.h"
 
-serverTCP::serverTCP(const size_t &port) : QObject(parent)
+ServerTCP::ServerTCP(QObject *parent) :
+                     QObject(parent), block(0)
 {
-    tcpServer = new QTcpServer;
-    if (tcpServer->listen(QHostAddress::Any, port)) {
-        qDebug() << "<serverTCP> listen error" << endl;
+    serverCreated = false;
+}
+
+void ServerTCP::createServer()
+{
+    tcpServer = new QTcpServer(this);
+    connect(tcpServer, tcpServer->newConnection, this, SLOT(slotNewConnection()));
+    hasCreated = true;
+}
+
+Server::~Server()
+{
+    foreach(int i,Clients.keys()){
+        Clients[i]->close();
+        Clients.remove(i);
+    }
+    tcpServer->close();
+}
+
+bool Server::getHasCreated()
+{
+    return hasCreated;
+}
+
+void Server::startListen(int port){
+    if (!tcpServer->listen(QHostAddress::Any, port)) {
+        debugLog(QString("Server Error, Unable to start the server: %1").arg(tcpServer->errorString()));
+        tcpServer->close();
         return;
     }
-    connect(tcpServer, SIGNAL(newConnection()), SLOT(newConnect()));
+    debugLog(QString("Server was started in port: %1").arg(QString::number(port)));
 }
 
-serverTCP::~serverTCP()
+void Server::closeClientConnection()
 {
-    tcpServer->close();
-    delete tcpServer;
+    QTcpSocket *pClientSocket = (QTcpSocket*)sender();
+    int idusersocs=pClientSocket->socketDescriptor();
+
+    int removeId;
+    //находим индекс клиента по его дескриптору
+    foreach(int i,Clients.keys()){
+        if (Clients[i]->socketDescriptor() == idusersocs){
+            removeId = i;
+            break;
+        }
+    }
+
+    pClientSocket->close();
+    Clients.remove(removeId);
+    debugLog(QString::number(Clients.count()));
 }
 
-serverTCP::sendToClients(const QString &msg)
+/*virtual*/ void Server::slotNewConnection()
 {
-    for (auto &socket : accepted)
-        sendToClient(socket, msg);
+    QTcpSocket *pClientSocket = tcpServer->nextPendingConnection();
+    int idusersocs=pClientSocket->socketDescriptor();
+
+    Clients[idusersocs]=pClientSocket;
+    connect(Clients[idusersocs],SIGNAL(readyRead()),this, SLOT(slotReadClient()));
+    connect(Clients[idusersocs], SIGNAL(disconnected()), this, SLOT(closeClientConnection()));
+
+    sendToClient(pClientSocket, "Server Response: Connected! You id: " + QString::number(idusersocs));
+    sendToClient(pClientSocket, lastmsg);
 }
 
-serverTCP::newConnect()
+void Server::slotReadClient()
 {
-    QTcpSocket *tcpSocket = tcpServer->nextPendingConnection();
-    sendToClient(tcpSocket, "[Connected true]");
-    accepted.push_back(tcpSocket);
+    QTcpSocket* pClientSocket = (QTcpSocket*)sender();
+    QDataStream in(pClientSocket);
 
-    connect(tcpSocket, SIGNAL(disconnected()), tcpSocket, deleteLater());
-    connect(tcpSocket, SIGNAL(readyRead()), tcpSocket, SLOT(recvReady()));
-}
-
-void serverTCP::recvClient()
-{
-    QTcpSocket *tcpSocket = (QTcpSocket *)sender();
-    QDataStream in(tcpSocket);
-    in.setVersion(QDataStream::Qt_5_9);
-    block = 0;
-    msg = "";
-
-    while(1) {
-        if (!block) {
-            if (tcpSocket->bytesAvailable() < sizeof(quint16)) {
-                qDebug() << "<recvClient> error read bytes" << endl;
+    pClientSocket->flush(); //проталкиваем "застрявшие" данные
+    in.setVersion(QDataStream::Qt_5_8);
+    for (;;) {
+        //проверяем есть ли еще данные для считывания
+        if (!nextBlockSize) {
+            if (pClientSocket->bytesAvailable() < sizeof(quint16)) {
                 break;
             }
-            in >> block;
+            in >> nextBlockSize;
         }
-        if (tcpSocket->bytesAvailable() < block)
+
+        if (pClientSocket->bytesAvailable() < nextBlockSize) {
             break;
+        }
+
+        //получаем данные от клиента
+        QString str;
+        in >> str;
+        nextBlockSize = 0;
+        //рассылаем данные клиентам
+        lastmsg = str;
+        sendToAllClients(str);
     }
-    QTime time;
-    QString str;
-    in >> time >> str;
-    msg += time.toString() + " " + str + "\n";
-    block = 0;
-    msgClients.push_back(msg);
-    emit recvClientDone();
 }
 
-void serverTCP::sendToClient(QTcpSocket *tcpSocket, const QString &msg)
+void Server::sendToClient(QTcpSocket *pSocket, const QString &str)
 {
-    QByteArray buffer;
-    QDataStream out(&buffer, QIODevice::WriteOnly);
-    out.setVersion(QDataStream::Qt_5_9);
-    out << quint16(0) << QTime::currentTime() << msg;
-    tcpSocket->write(buffer);
+    QByteArray  arrBlock;
+    QDataStream out(&arrBlock, QIODevice::WriteOnly);
+    out.setVersion(QDataStream::Qt_5_8);
+    out << quint16(0) << str;
+
+    out.device()->seek(0);
+    out << quint16(arrBlock.size() - sizeof(quint16));
+
+    pSocket->write(arrBlock);
+    pSocket->flush(); //проталкиваем "застрявшие" данные
 }
 
-QString serverTCP::msgClient()
+void Server::sendToAllClients(const QString &str)
 {
-    return msgClients().pop_back();
+    debugLog(QString::number(Clients.count()));
+    foreach (int id, Clients.keys()) {
+        sendToClient(Clients[id], str);
+    }
 }

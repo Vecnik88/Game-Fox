@@ -1,37 +1,39 @@
-#ifndef SERVERTCP_H
-#define SERVERTCP_H
+#ifndef SERVER_H
+#define SERVER_H
 
+#include <QtCore>
+#include <QDebug>
 #include <QVector>
-#include <QtNetwork>
+#include <QTcpServer>
+#include <QTcpSocket>
 
-class serverTCP : public QObject
+class ServerTCP : public QObject
 {
     Q_OBJECT
-
 public:
-    explicit Server(const size_t &, QObject *parent = Q_NULLPTR);
+    explicit Server(QObject *parent = 0);
     ~Server();
-    QString msgClient();
+
+    void createServer();
+    bool getServerCreated();
+signals:
+    void debugLog(QString data);
 
 public slots:
-    void sendToClients(const QString &);
-
-signals:
-    void recvClientDone();
-
-private slots:
-    void newConnect();
-    void recvClient();
+    void slotNewConnection();
+    void slotRecvClient();
+    void slotListen(size_t port);
+    void slotShutdownClientConnection();
 
 private:
-    void sendToClient(      QTcpSocket *,
-                      const QString    &);
+    QTcpServer             *tcpServer;
+    QMap<int, QTcpSocket*>  accepted;
+    quint16                 block;
+    QString                 msg;
 
-    QTcpServer              *tcpServer;
-    quint16                  block;
-    QString                  msg;
-    QVector<QTcpSocket *>    accepted;
-    QVector<QString>         msgClients;
+    void sendToClient(QTcpSocket* pSocket, const QString& str);
+    void sendToClients(const QString& str);
+    bool serverCreated;
 };
 
-#endif // SERVERTCP_H
+#endif // SERVER_H

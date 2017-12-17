@@ -19,20 +19,16 @@ SOURCES += source/main.cpp \
     source/subject.cpp \
     source/infocell.cpp \
     source/database.cpp \
-    source/thread.cpp \
     source/inventorytable.cpp \
-    source/delegate.cpp \
-    source/clienttcp.cpp \
-    source/servertcp.cpp \
-    source/clienttcp.cpp
+    #source/clienttcp.cpp \
+    #source/servertcp.cpp \
 
 HEADERS += \
     include/mainwindow.h \
     include/subject.h \
     include/infocell.h \
     include/database.h \
-    include/thread.h \
     include/inventorytable.h \
-    include/delegate.h \
-    include/clienttcp.h \
-    include/servertcp.h
+    #include/clienttcp.h \
+    #include/servertcp.h
+    include/sourcedata.h

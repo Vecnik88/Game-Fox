@@ -6,84 +6,159 @@ InventoryTable::InventoryTable(const size_t &rowsSrc,
 {
     rows = rowsSrc;
     cols = colsSrc;
-    cells.resize(rows * cols);
+    sizeTable = rows * cols;
+    cells.resize(sizeTable);
+    initTable();
+}
 
+void InventoryTable::initTable()
+{
     // формируем таблицу
     setFixedSize(300, 300);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setDragDropMode(QAbstractItemView::DragDrop);
-
-    for (size_t i = 0; i < cols; ++i) {
-        setColumnWidth(i, 100);
-        setRowHeight(i, 100);
-    }
-    setIconSize(QSize(92, 92));
+    horizontalHeader()->hide();
+    verticalHeader()->hide();
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+    verticalHeader()->setDefaultSectionSize(120);
+    horizontalHeader()->setDefaultSectionSize(120);
+    setDragEnabled(true);
+    setAcceptDrops(true);
     setDragDropOverwriteMode(true);
+    setDragDropMode(QAbstractItemView::DragDrop);
+    setDefaultDropAction(Qt::MoveAction);
     setDropIndicatorShown(true);
-    Delegate *delegate = new Delegate();
-    setItemDelegate(delegate);
-    connect(this, &InventoryTable::itemClicked, this, &InventoryTable::removeInventory);
-}
-// добавляет предмет в таблицу
-void InventoryTable::appendSubject(const size_t row, const size_t col)
-{
-    size_t cell = row * cols + col;
-    cells[cell].appendAmount();
+    setDragDropOverwriteMode(true);
+    setIconSize(QSize(70, 70));
 
-    for (size_t i = 0; i < rows*cols; ++i) {
-        qDebug() << i << " " << cells[i].getAmount() << " " << cells[i].getType() << endl;
+    for (size_t col = 0; col < cols; ++col) {
+        for (size_t row = 0; row < rows; ++row) {
+            QTableWidgetItem *item = new QTableWidgetItem(QString(""));
+            item->setTextAlignment(Qt::AlignBottom | Qt::AlignRight);
+            this->setItem(col, row, item);
+        }
+        setColumnWidth(col, 100);
+        setRowHeight(col, 100);
     }
 }
-// удаляет предмет из таблицы
-void InventoryTable::removeSubject(QTableWidgetItem *item)
-{
-    size_t cell = item->row() * cols + item->column();
-    qDebug() << "cell = " << cell << endl;
-    if (!cells[cell].getAmount())
-        return;
 
-    cells[cell].removeAmount();
-    QSound::play(SOUND_FOX);
-    if (!cells[cell].getAmount())
-        item->setIcon(QIcon());
-}
-
-void InventoryTable::removeInventory(QTableWidgetItem *item)
-{
-    this->removeSubject(item);
-}
 
 void InventoryTable::dragEnterEvent(QDragEnterEvent *event)
 {
-    QTableWidget::dragEnterEvent(event);
-}
-
-void InventoryTable::mouseReleaseEvent(QMouseEvent *event)
-{
-
-}
-
-void InventoryTable::dragMoveEvent(QDragMoveEvent *event)
-{
-    QTableWidget::dragMoveEvent(event);
-}
-
-void InventoryTable::dragLeaveEvent(QDragLeaveEvent *event)
-{
-    QTableWidget::dragLeaveEvent(event);
+    if (event->mimeData()->hasFormat("application/x-dnditemdata")) {
+        event->acceptProposedAction();
+    } else {
+        event->accept();
+    }
 }
 
 void InventoryTable::dropEvent(QDropEvent *event)
 {
-    QTableWidget::dropEvent(event);
-    QPoint position = event->pos();
-    QString str = this->indexAt(position).data().toString();
-    qDebug() << "str = " << str << endl;
-    size_t row = this->rowAt(position.y());
-    size_t col = this->columnAt(position.x());
-    this->appendSubject(row, col);
-    //qDebug() << (row * cols + col) << endl;
+    if (event->mimeData()->hasFormat("application/x-dnditemdata")) {
+        QByteArray buffer = event->mimeData()->data("application/x-dnditemdata");
+        QDataStream dataStream(&buffer, QIODevice::ReadOnly);
 
+        int amount;
+        QPixmap pixmap;
+        QPoint oldPosition;
+        QString type;
+        size_t currentCell = rowAt(event->pos().y()) * cols + columnAt(event->pos().x());
 
+        dataStream >> pixmap >> amount >> type >> oldPosition;
+
+        QTableWidgetItem *item = new QTableWidgetItem();
+        item->setIcon(QIcon(QPixmap(pixmap)));
+        if (itemAt(oldPosition)) { // если перемещаем внутри таблицы
+            itemAt(oldPosition)->setSelected(false);
+            size_t oldCell = itemAt(oldPosition)->row() * rows + itemAt(oldPosition)->column();
+            if (oldCell == currentCell)
+                return;
+
+            cells[currentCell].appendAmount(cells[oldCell].getAmount());
+            cells[oldCell].clear();
+            item->setText(QString::number(cells[currentCell].getAmount()));
+            delete itemAt(oldPosition);
+        }
+        else { // если добавляем новый
+                cells[currentCell].appendAmount();
+                item->setText(QString::number(cells[currentCell].getAmount()));
+        }
+        item->setTextAlignment(Qt::AlignBottom | Qt::AlignRight);
+        setItem(rowAt(event->pos().y()), columnAt(event->pos().x()), item);
+        event->acceptProposedAction();
+        event->accept();
+    }
+    else {
+        event->accept();
+    }
+}
+
+void InventoryTable::mousePressEvent(QMouseEvent *event)
+{
+    if (itemAt(event->pos())) {
+        QTableWidgetItem *item = itemAt(event->pos());
+        size_t currentCell = item->row() * rows + item->column();
+        item->setSelected(true);
+        if (event->button() == Qt::LeftButton) {
+            QPixmap pixmap = item->icon().pixmap(QSize(100,100));
+            int amount;
+            QByteArray itemData;
+            QDataStream dataStream(&itemData, QIODevice::WriteOnly);
+            QString subjectType = cells[currentCell].getType();
+            amount = cells[currentCell].getAmount();
+            if (!amount) { // если ячейка пуста
+                item->setSelected(false);
+                return;
+            }
+
+            dataStream << pixmap << amount << subjectType << event->pos();
+            QMimeData *mimeData = new QMimeData;
+            mimeData->setData("application/x-dnditemdata", itemData);
+            QDrag *drag = new QDrag(this);
+            drag->setMimeData(mimeData);
+            drag->setPixmap(pixmap);
+            drag->setHotSpot(event->pos() - QPoint(item->column() * 100, item->row() * 100));
+            drag->exec(Qt::CopyAction);
+        }
+        else if (event->button() == Qt::RightButton) {
+            if (cells[currentCell].getAmount())
+                QSound::play(SOUND_FOX);
+
+            if (cells[currentCell].getAmount() > 1) {
+                cells[currentCell].removeAmount();
+                item->setText(QString::number(cells[currentCell].getAmount()));
+            }
+            else {
+                cells[currentCell].clear();
+                item->setSelected(false);
+                delete item;
+            }
+        }
+    }
+}
+
+void InventoryTable::dragMoveEvent(QDragMoveEvent *event)
+{
+    if (event->mimeData()->hasFormat("application/x-dnditemdata")){
+        event->acceptProposedAction();
+        QAbstractItemView *d = reinterpret_cast<QAbstractItemView*>(this);
+        QModelIndex index = indexAt(event->pos());
+        highlightedRect = d->visualRect(index);
+
+        viewport()->update();
+    }
+    else {
+        event->accept();
+    }
+}
+
+void InventoryTable::paintEvent(QPaintEvent *event)
+{
+    QTableWidget::paintEvent(event);        // перерисовка QTableWidget
+    QPainter painter(this->viewport());     // перерисовка на viewport();
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setPen(Qt::blue);
+    painter.drawRect(highlightedRect);
 }

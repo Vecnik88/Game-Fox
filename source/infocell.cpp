@@ -36,3 +36,9 @@ QString InfoCell::getType()
 {
     return type;
 }
+
+void InfoCell::clear()
+{
+    amount = 0;
+    type = "";
+}

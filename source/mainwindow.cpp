@@ -1,12 +1,5 @@
 #include "include/mainwindow.h"
-
-#define WIDTH           600
-#define HEIGHT          400
-#define OFFSET_X        100
-#define OFFSET_Y        100
-#define DATABASE_NAME   "/home/anton/qt_project/red/database/gameFox"
-#define ROWS_TABLE      3
-#define COLS_TABLE      3
+#include "include/sourcedata.h"
 
 MainWindow::MainWindow(const QString &type,
                        const QString &path,
@@ -23,9 +16,11 @@ MainWindow::MainWindow(const QString &type,
         qDebug() << "< MainWindow > error connect to database" << endl;
 
     table = new InventoryTable(COLS_TABLE, ROWS_TABLE);
+    qDebug() << "debug 8" << endl;
     subject = new Subject;
-    subject->verticalHeader()->hide();
-    subject->horizontalHeader()->hide();
+
+    //subject->verticalHeader()->hide();
+    //subject->horizontalHeader()->hide();
 
     if (!db->initParametrs(subject, table->cells))
         qDebug() << "< MainWindow > error init parametrs with database" << endl;
@@ -79,7 +74,6 @@ MainWindow::MainWindow(const QString &type,
 
 void MainWindow::runGame()
 {
-    table->clear();
     gameField->setEnabled(true);
     menuGame->setEnabled(true);
     mainMenu->hide();
