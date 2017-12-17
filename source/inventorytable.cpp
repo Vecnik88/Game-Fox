@@ -11,7 +11,7 @@ InventoryTable::InventoryTable(const size_t &rowsSrc,
     createTable();
 }
 
-void InventoryTable::initTable()
+void InventoryTable::refreshTable()
 {
     for (size_t col = 0; col < cols; ++col) {
         for (size_t row = 0; row < rows; ++row) {
@@ -21,7 +21,6 @@ void InventoryTable::initTable()
                 item->setIcon(QIcon(QPixmap(PATH_IMAGE)));
                 item->setText(QString::number(cells[cell].getAmount()));
             }
-
             item->setTextAlignment(Qt::AlignBottom | Qt::AlignRight);
             this->setItem(col, row, item);
         }
@@ -91,11 +90,21 @@ void InventoryTable::dropEvent(QDropEvent *event)
             cells[currentCell].appendAmount(cells[oldCell].getAmount());
             cells[oldCell].clear();
             item->setText(QString::number(cells[currentCell].getAmount()));
+
+            emit addMessageToSocket(currentCell,
+                                    cells[currentCell].getType(),
+                                    cells[currentCell].getAmount());
+            emit addMessageToSocket(oldCell,
+                                    cells[oldCell].getType(),
+                                    cells[oldCell].getAmount());
             delete itemAt(oldPosition);
         }
         else { // если добавляем новый
                 cells[currentCell].appendAmount();
                 item->setText(QString::number(cells[currentCell].getAmount()));
+                emit addMessageToSocket(currentCell,
+                                        cells[currentCell].getType(),
+                                        cells[currentCell].getAmount());
         }
         item->setTextAlignment(Qt::AlignBottom | Qt::AlignRight);
         setItem(rowAt(event->pos().y()), columnAt(event->pos().x()), item);
@@ -147,6 +156,9 @@ void InventoryTable::mousePressEvent(QMouseEvent *event)
                 item->setSelected(false);
                 delete item;
             }
+            emit addMessageToSocket(currentCell,
+                                    cells[currentCell].getType(),
+                                    cells[currentCell].getAmount());
         }
     }
 }

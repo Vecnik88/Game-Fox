@@ -14,6 +14,7 @@
  * Класс "Предмет", описывает тип предмета *
  * и путь где лежит исходное изображение   *
  *******************************************/
+
 class Subject : public QFrame
 {
     Q_OBJECT
@@ -22,10 +23,12 @@ public:
                      const QString &pathSrc = "",
                            QWidget *parent = 0);
     ~Subject();
-
+    // возвращает тип объекта
     const QString &getType();
+    // возвращает количество объектов
     const QString &getPath();
 
+    // устанавливает необходимые параметры
     void setParametrs(const QString &typeSrc,
                       const QString &pathSrc);
 protected:

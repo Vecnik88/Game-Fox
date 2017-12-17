@@ -11,6 +11,10 @@
 #include "include/infocell.h"
 #include "include/sourcedata.h"
 
+/******************************
+ * Объект описывает инвентарь *
+ * ****************************/
+
 class InventoryTable : public QTableWidget
 {
     Q_OBJECT
@@ -18,8 +22,17 @@ public:
     InventoryTable(const size_t &rowsSrc,
                    const size_t &colsSrc);
 
-    void initTable();
+    // обновляет таблицу с инвентарем
+    void refreshTable();
+    // информация о таблице инвентаря
     QVector<InfoCell> cells;
+signals:
+    // посылает сигнал что необходимо синхронизировать данные,
+    // когда игра происходит по сети
+    void addMessageToSocket(int     cell,
+                            QString type,
+                            int     amount);
+
 private:
     size_t cols;
     size_t rows;

@@ -32,4 +32,8 @@
 #define SOUND_FOX               "/home/anton/qt_project/red/sound/fox.wav"
 #define DATABASE_NAME           "/home/anton/qt_project/red/database/gameFox"
 
+// для сетевого соединения
+#define IP_ADDR_LOCAL_HOST      "127.0.0.1"
+#define PORT                    1234
+
 #endif // SOURCEDATA_H
