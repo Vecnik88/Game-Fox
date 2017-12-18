@@ -10,18 +10,17 @@
 #include "include/subject.h"
 #include "include/infocell.h"
 #include "include/database.h"
+#include "include/sourcedata.h"
 #include "include/inventorytable.h"
 
 enum statusGame {
     CLIENT = 0,
     SERVER,
-    SIMPLE_GAME
+    SIMPLE_GAME,
+    GAME_NOT_START
 };
 
-/****************
- * Игровое окно *
- ****************/
-
+// главное игровое окно
 class GameWindow : public QWidget
 {
     Q_OBJECT
@@ -34,8 +33,6 @@ signals:
     void newMessageRefreshTable(const size_t  &cell,
                                 const QString &type,
                                 const size_t  &amount);
-
-    void newGame();
 
 public slots:
     // запускает игру
@@ -59,7 +56,7 @@ public slots:
                                 const int     &amount);
 
     // client
-    void slotConnected();
+    void slotConnected();               // определение нового соединения с сервером
     void slotRecvServer();              // для прочтения данных от сервера
     void slotSendNewGameToServer();
     void slotError(QAbstractSocket::SocketError err);
@@ -73,7 +70,7 @@ private:
     Subject             *subject;
     QWidget             *mainMenu;
     QWidget             *gameField;
-    qint8                gameStatus;
+    int                  gameStatus;
 
     // управляющие кнопки
     QPushButton         *run;
@@ -95,7 +92,6 @@ private:
     void createGameMenu();
     void createGameField();
     void createGameWindow();
-
     void refreshGameField();
 };
 

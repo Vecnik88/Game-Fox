@@ -15,9 +15,7 @@
 #include "include/infocell.h"
 #include "include/sourcedata.h"
 
-/***********************************
- * представляет базу данных SQLite *
- * *********************************/
+// база данных, хранит стартовые данные
 class DataBase : public QObject
 {
     Q_OBJECT
@@ -29,9 +27,11 @@ public:
     // присоединяется к базе данных
     bool connectToDataBase();
     // присваивает значение объектам, из базы данных
-    bool getIntoTable(Subject *subject, QVector<InfoCell> &cells);
+    bool getIntoTable(Subject           *subject,
+                      QVector<InfoCell> &cells);
     // инициализирует исходные параметры, при старте игры
-    bool initParametrs(Subject *subject, QVector<InfoCell> &cells);
+    bool initParametrs(Subject           *subject,
+                       QVector<InfoCell> &cells);
     // вставляет данные из объектов в таблицы
     bool insertIntoTable(Subject           *subject,
                          QVector<InfoCell> &cells);

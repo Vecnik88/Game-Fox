@@ -1,33 +1,28 @@
 #ifndef SUBJECT_H
 #define SUBJECT_H
 
+#include <QDrag>
 #include <QIcon>
 #include <QString>
-#include <QTableWidget>
 #include <QFrame>
 #include <QtWidgets>
-#include <QDrag>
+#include <QTableWidget>
 
 #include "include/sourcedata.h"
 
-/*******************************************
- * Класс "Предмет", описывает тип предмета *
- * и путь где лежит исходное изображение   *
- *******************************************/
-
+// описывает игровой предмет
 class Subject : public QFrame
 {
     Q_OBJECT
 public:
     explicit Subject(const QString &typeSrc = "",
                      const QString &pathSrc = "",
-                           QWidget *parent = 0);
+                           QWidget *parent  = Q_NULLPTR);
     ~Subject();
     // возвращает тип объекта
     const QString &getType();
     // возвращает количество объектов
     const QString &getPath();
-
     // устанавливает необходимые параметры
     void setParametrs(const QString &typeSrc,
                       const QString &pathSrc);

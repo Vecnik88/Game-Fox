@@ -3,18 +3,15 @@
 
 #include <QVector>
 #include <QDebug>
+#include <QtWidgets>
 #include <QTableWidget>
 #include <QDragEnterEvent>
 #include <QtMultimedia/QSound>
-#include <QtWidgets>
 
 #include "include/infocell.h"
 #include "include/sourcedata.h"
 
-/******************************
- * Объект описывает инвентарь *
- * ****************************/
-
+// содержит игровой инвентарь
 class InventoryTable : public QTableWidget
 {
     Q_OBJECT

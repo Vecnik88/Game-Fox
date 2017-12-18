@@ -1,10 +1,10 @@
 #include "include/mainwindow.h"
-#include "include/sourcedata.h"
 
 GameWindow::GameWindow(QWidget *parent):
                        QWidget (parent)
 {
     gameInit();
+    gameStatus = GAME_NOT_START;
 
     // соединяем необходимые нам сигналы со слотами
     connect(run, SIGNAL(clicked(bool)), SLOT(slotRunGame()));
@@ -17,12 +17,17 @@ GameWindow::GameWindow(QWidget *parent):
 void GameWindow::slotRunGame()
 {
     gameStatus = SIMPLE_GAME;
+    this->setWindowTitle("Game");
     startGame();
 }
 
 void GameWindow::slotRunGameClient()
 {
+    if (gameStatus == SERVER || gameStatus == SIMPLE_GAME)
+        return;
+
     gameStatus = CLIENT;
+    this->setWindowTitle("Client");
     clientTcpSocket = new QTcpSocket();
     clientTcpSocket->connectToHost(IP_ADDR_LOCAL_HOST, PORT);
 
@@ -37,8 +42,11 @@ void GameWindow::slotRunGameClient()
 
 void GameWindow::slotRunGameServer()
 {
-    gameStatus = SERVER;
+    if (gameStatus == CLIENT || gameStatus == SIMPLE_GAME)
+        return;
 
+    gameStatus = SERVER;
+    this->setWindowTitle("Server");
     tcpServer = new QTcpServer(this);
 
     if (!tcpServer->listen(QHostAddress(IP_ADDR_LOCAL_HOST), PORT)) {
@@ -118,13 +126,13 @@ void GameWindow::createGameField()
 {
     db = new DataBase(ROWS_TABLE * COLS_TABLE);
     if (!db->connectToDataBase())
-        qDebug() << "< MainWindow > error connect to database" << endl;
+        qDebug() << "<GameWindow::createGameField> error connect to database" << endl;
 
     table = new InventoryTable(COLS_TABLE, ROWS_TABLE);
     subject = new Subject;
 
     if (!db->initParametrs(subject, table->cells))
-        qDebug() << "< MainWindow > error init parametrs with database" << endl;
+        qDebug() << "<GameWindow::createGameField> error init parametrs with database" << endl;
 
     gameField = new QWidget;
     table->verticalHeader()->hide();
@@ -139,6 +147,7 @@ void GameWindow::createGameField()
 // создает окончательный вид игрового окна
 void GameWindow::createGameWindow()
 {
+    dataSize = 0;
     QVBoxLayout *mainLayout = new QVBoxLayout;
     mainLayout->addWidget(mainMenu);
     mainLayout->addWidget(gameField);
@@ -181,29 +190,22 @@ void GameWindow::slotNewConnection()
 
 void GameWindow::slotRecvClient()
 {
-    qDebug() << "slotRecvClient" << endl;
     QDataStream in(clientTcpSocket);
-    qDebug() << "1" << endl;
     in.setVersion(QDataStream::Qt_5_9);
     while(1) {
-        qDebug() << "2" << endl;
         if (!dataSize) {
             if (clientTcpSocket->bytesAvailable() < sizeof(quint16)) {
-                qDebug() << "3" << endl;
+                    qDebug() << "<GameWindow::slotRecvClient> error read message" << endl;
                     break;
                 }
                 in >> dataSize;
-                qDebug() << "datasize = " << endl;
             }
-        qDebug() << "4" << endl;
-        qDebug() << "byte = " << serverTcpSocket->bytesAvailable() << endl;
-            /*if (clientTcpSocket->bytesAvailable() < dataSize) {
+            if (clientTcpSocket->bytesAvailable() < dataSize) {
+                qDebug() << "<GameWindow::slotRecvClient> error read message" << endl;
                 break;
-            }*/
+            }
             QString action;
-
             in >> action;
-            qDebug() << "action = " << action << endl;
             if (action == "change") {
                 int cell;
                 int amount;
@@ -223,13 +225,11 @@ void GameWindow::slotSendChangeToClient(const int     &cell,
                                         const QString &type,
                                         const int     &amount)
 {
-    qDebug() << "slotSendChangeToClient" << endl;
     QString action = "change";
     QByteArray  buffer;
     QDataStream out(&buffer, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_9);
     out << quint16(0) << action << cell << type << amount;
-    qDebug() << action << cell << type << amount << endl;
     out.device()->seek(0);
     out << quint16(buffer.size() - sizeof(quint16));
     serverTcpSocket->write(buffer);
@@ -237,7 +237,6 @@ void GameWindow::slotSendChangeToClient(const int     &cell,
 
 void GameWindow::slotRecvServer()
 {
-    qDebug() << "slotRecvServer" << endl;
     QDataStream in(serverTcpSocket);
     in.setVersion(QDataStream::Qt_5_9);
     while (1) {
@@ -246,19 +245,17 @@ void GameWindow::slotRecvServer()
                 break;
             }
                 in >> dataSize;
-            }
-        qDebug() << "byte = " << serverTcpSocket->bytesAvailable() << endl;
+        }
             if (serverTcpSocket->bytesAvailable() < dataSize) {
                 break;
             }
             QString action;
-
             in >> action;
             if (action == "change"){
                 QString type;
                 int amount;
                 int cell;
-               in >> type >> amount >> cell;
+               in >> cell >> type >> amount;
                table->cells[cell].setParametrs(type, amount);
                refreshGameField();
             }
@@ -282,23 +279,23 @@ void GameWindow::slotError(QAbstractSocket::SocketError err)
         qDebug() << strError;
 }
 
-void GameWindow::slotSendChangeToServer(const int &cell, const QString &type, const int &amount)
+void GameWindow::slotSendChangeToServer(const int     &cell,
+                                        const QString &type,
+                                        const int     &amount)
 {
-    qDebug() << "slotSendChangeToServer" << endl;
     QString action = "change";
     QByteArray buffer;
     QDataStream out(&buffer, QIODevice::WriteOnly);
     out.setVersion(QDataStream::Qt_5_9);
     out << quint16(0) << action << cell << type << amount;
     out.device()->seek(0);
-    qDebug() << action << cell << type << amount << endl;
     out << quint16(buffer.size() - sizeof(quint16));
     clientTcpSocket->write(buffer);
 }
 
+
 void GameWindow::slotSendNewGameToServer()
 {
-    qDebug() << "slotSendNewGameToServer" << endl;
     QString action = "game";
     QByteArray buffer;
     QDataStream out(&buffer, QIODevice::WriteOnly);
@@ -315,10 +312,8 @@ void GameWindow::slotConnected()
     startGame();
 }
 
-
 void GameWindow::slotSendNewGameToClient()
 {
-    qDebug() << "slotSendNewGameToClient" << endl;
     QString action = "game";
     QByteArray  buffer;
     QDataStream out(&buffer, QIODevice::WriteOnly);

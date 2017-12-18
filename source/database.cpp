@@ -134,7 +134,8 @@ bool DataBase::insertIntoTable(Subject           *subject,
     return true;
 }
 
-bool DataBase::getIntoTable(Subject *subject, QVector<InfoCell> &cells)
+bool DataBase::getIntoTable(Subject           *subject,
+                            QVector<InfoCell> &cells)
 {
     QSqlQuery query;
     if (!query.exec("SELECT * FROM " NAME_TABLE_SUBJECT ";")) {

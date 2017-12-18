@@ -167,7 +167,7 @@ void InventoryTable::dragMoveEvent(QDragMoveEvent *event)
 {
     if (event->mimeData()->hasFormat("application/x-dnditemdata")){
         event->acceptProposedAction();
-        QAbstractItemView *d = reinterpret_cast<QAbstractItemView*>(this);
+        QAbstractItemView *d = reinterpret_cast<QAbstractItemView *>(this);
         QModelIndex index = indexAt(event->pos());
         highlightedRect = d->visualRect(index);
 
